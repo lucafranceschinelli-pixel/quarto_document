@@ -1,27 +1,136 @@
 ---
-title: "first document html"
-author: "Luca"
-format: html
-editor: visual
+title: "First document in HTML"
+author: "Luca Franceschinelli"
+format:
+ html:
+  toc: true
+  toc-title: Contents
+  toc-location: left
+  number-sections: true
+  embed-resources: true
+  bibliography: "bibliography_html.bib"
+  csl: apa.csl
+execute:
+  cache: true
+  results: hide
+  echo: false
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+rm(list=ls())
 ```
 
-You can add options to executable code like this
-
+## Overview of Sara_dataset
 ```{r}
-#| echo: false
-2 * 2
+#| width=30
+library(readxl)
+data <- read_excel("C:/Users/kelde/OneDrive/Desktop/Quarto/Sara_dataset.xls")
+data$gender <- as.factor(data$gender)
+data$major <- as.factor(data$major)
+data$cond <- as.factor(data$cond)
+rmarkdown::paged_table(data)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+This is Sara_dataset, it's a dataset that contains data of `r nrow(data)` subject on  `r ncol(data)` variables.
+
+- In the dataset there are `r table(data$gender)[1]` female subjects and `r table(data$gender)[2]` male subjects with five different type of undergraduate degree obtained (``r names(data[2])``).
+
+- Subjects were divided in four experimental condition from easy to impossible (``r names(data[3])``).
+
+- Everyone describe their fear of mathematics on a scale from 0 to 10 (<span style="color:#FF8787;">`r names(data[4])`</span>) and the number of mathematics courses previously attended (``r names(data[5])``).
+
+- Tests consist in mathematics pre-test (<span style="color:#008777;">`r names(data[6])`</span>) and statistics test (<span style="color:#DE4FFF;">`r names(data[7])`</span>) while subjects self-measured heart rate (normal, pre, post conditions ``r names(data[8:10])``) and then took an anxiety test (normal, pre, post conditions ``r names(data[11:13])``).
+
+## Analysis
+
+### Let's do some descriptive statistics:
+
+#### Summary A:
+
+```{r}
+summary(data[, (4:7)])
+```
+In *<span style="color:#FF8787;">`r names(data[4])`</span>* we can observe **simple relative frequency** from the graph (@fig-graph).
+
+We can also calculate mean and standard deviation to better comprehend this variable:
+mean = *`r summary(data[,4])[4]`*, sd = *`r round(sd(data$phobia), 2)`*.
+
+:::: columns
+
+::: {.column width="80%"}
+
+```{r}
+#| label: fig-graph
+#| fig-cap: "Simple relative frequency of mathematics fear"
+#| fig-width: 5
+#| fig-height: 4
+
+k <- prop.table(table(data$phobia))
+# "Simple relative frequency of mathematics fear"
+barplot(k, col=rgb(0,.2,.3,.7), xlab="Self-reported phobia", ylab="Frequency")
+```
+
+:::
+
+::: {.column width="20%"}
+
+![Fear of mathematics test](fear_cat.jpg){#fig-fear}
+
+:::
+
+::::
+
+#### Summary B:
+
+```{r}
+par(mfrow = c(2,3))
+boxplot(data$hr_base, col=rgb(0,.2,.3,.7), xlab="Heart rate base", ylab="bpm")
+boxplot(data$hr_pre, col=rgb(0,.2,.3,.7), xlab="Heart rate pre", ylab="bpm")
+boxplot(data$hr_post, col=rgb(0,.2,.3,.7), xlab="Heart rate post", ylab="bpm")
+boxplot(data$anx_base, col=rgb(0,.2,.3,.7), xlab="Anxiety base")
+boxplot(data$anx_pre, col=rgb(0,.2,.3,.7), xlab="Anxiety pre")
+boxplot(data$anx_post, col=rgb(0,.2,.3,.7), xlab="Anxiety post")
+```
+
+### Analysis of two variables
+
+::: columns
+
+::: {.column width="50%"}
+
+First variable: <span style="color:#FF8787;">`r names(data[4])`</span>
+
+```{r}
+summary(data[,4])
+```
+
+Standard deviation: `r round(sd(data$phobia), 2)`
+
+:::
+
+::: {.column width="50%"}
+
+Second variable: <span style="color:#008777;">`r names(data[6])`</span>
+
+```{r}
+summary(data[,6])
+```
+
+Standard deviation: `r round(sd(sort(data$mathquiz)), 2)` 
+
+:::
+
+:::
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Scatterplot `phobia` x `mathquiz`"
+plot(data$phobia, data$mathquiz, xlab = "Fear of mathematics", ylab = "Score in mathematics test", col = rgb(0,0,1,0.2), pch=19, cex=2.5)
+```
+
+Form the scatterplot (@fig-plot) it seem that most of subjects that have a fear of mathematics below point 3 and when the fear of mathematics is high, scores in mathematics test are mostly below 30.
+
+## Conclusion
+There's an article about the fear in mathematics classroom [@whyte2012maths], similar to Sara_dataset analyze above, it seems that more a person generally has less fear and higher score on mathematics test; as you can notice there are some missing values form <span style="color:#008777;">`r names(data[6])`</span> (exactly `r summary(data[,6])[7]` NA's). Fortunately, the majority of people remaining did have low *phobia* of mathematics test.
+
+
